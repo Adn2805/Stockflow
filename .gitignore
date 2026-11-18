@@ -11,3 +11,5 @@ frontend/playwright-report/
 frontend/test-results/
 .npm-cache/
 .playwright-browsers/
+benchmarks/local-results/
+benchmarks/results/locust/*.log

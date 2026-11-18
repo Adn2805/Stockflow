@@ -1,0 +1,30 @@
+{
+  "10": {
+    "requests_per_second": 98.87130295694713,
+    "median_ms": 38.0,
+    "p95_ms": 120.0,
+    "unexpected_error_rate": 0.0,
+    "stock_rejection_rate_of_orders": 0.7735849056603774
+  },
+  "25": {
+    "requests_per_second": 97.56071824484982,
+    "median_ms": 190.0,
+    "p95_ms": 370.0,
+    "unexpected_error_rate": 0.0,
+    "stock_rejection_rate_of_orders": 0.7902097902097902
+  },
+  "50": {
+    "requests_per_second": 112.1736270262549,
+    "median_ms": 350.0,
+    "p95_ms": 650.0,
+    "unexpected_error_rate": 0.0,
+    "stock_rejection_rate_of_orders": 0.8125
+  },
+  "100": {
+    "requests_per_second": 105.94845833111717,
+    "median_ms": 780.0,
+    "p95_ms": 1500.0,
+    "unexpected_error_rate": 0.0,
+    "stock_rejection_rate_of_orders": 0.8070739549839229
+  }
+}

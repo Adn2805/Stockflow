@@ -1,0 +1,2 @@
+-r ../backend/requirements-dev.txt
+locust==2.47.0

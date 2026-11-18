@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
-from app.models import Inventory, Order, OrderItem, StockMovement
+from app.models import Inventory, Order, OrderItem, StockMovement, Warehouse
 
 
 @pytest.fixture
@@ -225,3 +225,44 @@ def test_concurrent_orders_with_mixed_quantities(client, database, catalog):
     codes = [response.status_code for response in responses]
     assert codes in ([201, 201, 409], [201, 409, 201], [409, 201, 201])
     assert_ledger(database, [(6, 6 if codes[0] == 201 else 2)], 2, 2, 2)
+
+
+def test_concurrent_receipt_and_orders_keep_ledger_consistent(client, database, catalog):
+    data = catalog(5)
+    product_id = data["items"][0]["product_id"]
+    receipt = {"product_id": product_id, "warehouse_id": data["warehouse_id"], "quantity": 3}
+    requests = [
+        lambda key=key: submit(client, data, f"receipt-race-{key}")
+        for key in range(5)
+    ] + [lambda: client.post("/inventory/receipts", json=receipt)]
+    assert [r.status_code for r in simulate_concurrency(requests)] == [201] * 6
+    assert_ledger(database, [(8, 5)], 5, 5, 5)
+
+
+def test_concurrent_repeated_cancellation_releases_stock_once(client, database, catalog):
+    original = submit(client, catalog(6, 6), "cancel-retry")
+    assert original.status_code == 201
+    path = f"/orders/{original.json()['id']}/cancel"
+    responses = simulate_concurrency([lambda: client.post(path)] * 8)
+    assert all(response.status_code == 200 and response.json()["status"] == "CANCELLED"
+               for response in responses)
+    assert_ledger(database, [(6, 0), (6, 0)], 1, 2, 4)
+
+
+def test_insufficient_order_in_one_warehouse_does_not_draw_from_another(
+    client, database, catalog
+):
+    data = catalog(2)
+    with Session(database, expire_on_commit=False) as db, db.begin():
+        remote = Warehouse(name="Remote site", location="Test")
+        db.add(remote)
+    assert client.post("/inventory/receipts", json={
+        "warehouse_id": remote.id, "product_id": data["items"][0]["product_id"], "quantity": 9,
+    }).status_code == 201
+    data["items"][0]["quantity"] = 3
+    assert submit(client, data, "single-warehouse").status_code == 409
+    with Session(database) as db:
+        assert [(row.warehouse_id, row.on_hand, row.reserved) for row in db.scalars(
+            select(Inventory).order_by(Inventory.warehouse_id)
+        )] == [(data["warehouse_id"], 2, 0), (remote.id, 9, 0)]
+        assert db.scalar(select(func.count()).select_from(Order)) == 0

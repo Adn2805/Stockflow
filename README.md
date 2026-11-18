@@ -137,6 +137,10 @@ npx playwright install chromium
 npm test
 ```
 
-The browser tests start their own API and dashboard on loopback ports 58081 and 55173. They generate their own account passwords and remove their test schema afterward. The dashboard fetches paginated API results for its overview totals. A dedicated aggregate endpoint can be evaluated when larger datasets are benchmarked in Phase 4.
+The browser tests start their own API and dashboard on loopback ports 58081 and 55173. They generate their own account passwords and remove their test schema afterward. The dashboard fetches paginated API results for its overview totals.
 
-Phase 4 covers the load and concurrency benchmarks, CI, and performance evidence.
+## Concurrency and performance
+
+The local Phase 4 benchmark repeated the 500-request reservation burst twice. Each run accepted 100 one-unit reservations against 100 available units and returned 400 insufficient-stock responses. All committed inventory, orders, and ledger entries reconciled. See the [benchmark report](benchmarks/README.md) for the Locust results, reproduction commands, raw output, and limits.
+
+The [CI workflow](.github/workflows/ci.yml) runs PostgreSQL regression tests, the HTTP concurrency harness, the dashboard build, and Playwright smoke tests. The Locust matrix runs locally to keep the timing conditions under the operator's control.
