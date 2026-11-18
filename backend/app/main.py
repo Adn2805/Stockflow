@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
-from app.api import inventory, products
+from app.api import inventory, orders, products
 from app.api.dependencies import Database
 from app.core.config import Settings
 
@@ -34,6 +34,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.include_router(products.router)
     app.include_router(inventory.router)
+    app.include_router(orders.router)
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(_: Request, exc: RequestValidationError):
