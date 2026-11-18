@@ -4,12 +4,13 @@ from logging import getLogger
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
-from app.api import inventory, orders, products
+from app.api import auth, inventory, orders, products, reports
 from app.api.dependencies import Database
-from app.core.config import Settings
+from app.core.config import Settings, configured_origins
 
 logger = getLogger(__name__)
 
@@ -32,6 +33,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(
         title="StockFlow", version="0.1.0", lifespan=lifespan, max_body_size=32 * 1024
     )
+    app.add_middleware(
+        CORSMiddleware, allow_origins=settings.cors_origins if settings is not None else configured_origins(),
+        allow_methods=["GET", "POST", "PATCH"], allow_headers=["Authorization", "Idempotency-Key"],
+    )
+    app.include_router(auth.router)
+    app.include_router(reports.router)
     app.include_router(products.router)
     app.include_router(inventory.router)
     app.include_router(orders.router)

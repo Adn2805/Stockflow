@@ -20,6 +20,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://stockflow:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/stockflow
       WRITE_TOKEN: ${WRITE_TOKEN:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
     depends_on:
       db:
         condition: service_healthy

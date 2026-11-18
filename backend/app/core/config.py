@@ -1,14 +1,39 @@
+from os import getenv
+from typing import Annotated
+from urllib.parse import urlsplit
+
 from pydantic import SecretStr, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
+
+
+def parse_origins(value: str | list[str]) -> list[str]:
+    entries = value.split(",") if isinstance(value, str) else value
+    origins = [origin.strip() for origin in entries if origin.strip()]
+    for origin in origins:
+        url = urlsplit(origin)
+        if (url.scheme not in {"http", "https"} or not url.hostname or url.username is not None
+                or url.path or url.query or url.fragment or "*" in origin):
+            raise ValueError("CORS origins must be explicit HTTP(S) origins without paths")
+    return origins
+
+
+def configured_origins() -> list[str]:
+    return parse_origins(getenv("CORS_ORIGINS", ""))
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(hide_input_in_errors=True)
 
+    cors_origins: Annotated[list[str], NoDecode] = []
     database_url: SecretStr
     write_token: SecretStr | None = None
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def validate_origins(cls, value):
+        return parse_origins(value)
 
     @field_validator("database_url")
     @classmethod

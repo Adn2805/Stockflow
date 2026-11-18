@@ -3,18 +3,18 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from sqlalchemy import select
 
-from app.api.dependencies import Database, Page, require_write_token
+from app.api.dependencies import Database, Page, require_staff
 from app.models import Order
 from app.order_schemas import OrderCreate, OrderRead, OrderStatus
 from app.schemas import Identifier
 from app.services import orders
 
-router = APIRouter(prefix="/orders", tags=["orders"])
+router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depends(require_staff)])
 IdempotencyKey = Annotated[str, Header(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9._:-]+$")]
 
 
 @router.post(
-    "", status_code=201, response_model=OrderRead, dependencies=[Depends(require_write_token)],
+    "", status_code=201, response_model=OrderRead,
     responses={200: {"model": OrderRead, "description": "Replay of an existing order"}},
 )
 def create_order(data: OrderCreate, idempotency_key: IdempotencyKey, db: Database, response: Response):
@@ -51,11 +51,11 @@ def change_status(db: Database, order_id: int, target: OrderStatus) -> Order:
         raise HTTPException(404, str(exc)) from None
 
 
-@router.post("/{order_id}/cancel", response_model=OrderRead, dependencies=[Depends(require_write_token)])
+@router.post("/{order_id}/cancel", response_model=OrderRead)
 def cancel_order(order_id: Identifier, db: Database):
     return change_status(db, order_id, "CANCELLED")
 
 
-@router.post("/{order_id}/fulfill", response_model=OrderRead, dependencies=[Depends(require_write_token)])
+@router.post("/{order_id}/fulfill", response_model=OrderRead)
 def fulfill_order(order_id: Identifier, db: Database):
     return change_status(db, order_id, "FULFILLED")

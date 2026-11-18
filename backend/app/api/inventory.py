@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 
-from app.api.dependencies import Database, Page, require_write_token
+from app.api.dependencies import Database, Page, require_staff
 from app.models import Inventory, Warehouse
 from app.schemas import Identifier, InventoryRead, ReceiptCreate, WarehouseRead
 from app.services.inventory import ReceiptReferenceNotFound, StockLimitExceeded, receive_stock
@@ -31,7 +31,7 @@ def list_inventory(
     "/inventory/receipts",
     status_code=201,
     response_model=InventoryRead,
-    dependencies=[Depends(require_write_token)],
+    dependencies=[Depends(require_staff)],
 )
 def create_receipt(data: ReceiptCreate, db: Database):
     try:

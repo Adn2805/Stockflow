@@ -166,11 +166,11 @@ def test_all_mutations_require_write_token(validation_client, method, path, body
         assert response.headers["WWW-Authenticate"] == "Bearer"
 
 
-def test_missing_server_token_disables_writes(monkeypatch):
+def test_unauthenticated_writes_require_login_without_legacy_token(monkeypatch):
     monkeypatch.delenv("WRITE_TOKEN", raising=False)
     settings = Settings(database_url="postgresql+psycopg://localhost/unused")
     with TestClient(create_app(settings)) as client:
-        assert client.post("/products", json=PRODUCT).status_code == 403
+        assert client.post("/products", json=PRODUCT).status_code == 401
 
 
 def test_oversized_request_is_rejected(validation_client):

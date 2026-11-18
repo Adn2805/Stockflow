@@ -1,6 +1,7 @@
 from alembic import context
 from sqlalchemy import create_engine, pool
 
+import app.auth  # Register authentication tables with metadata.
 from app.core.config import Settings
 from app.models import Base
 

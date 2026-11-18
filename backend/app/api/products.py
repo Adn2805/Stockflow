@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 
-from app.api.dependencies import Database, Page, require_write_token
+from app.api.dependencies import Database, Page, require_admin
 from app.models import Product
 from app.schemas import Identifier, ProductCreate, ProductPatch, ProductRead
 from app.services.products import DuplicateSku, ProductNotFound, save_product
@@ -14,7 +14,7 @@ def list_products(db: Database, page: Page):
     return db.scalars(select(Product).order_by(Product.id).offset(page.offset).limit(page.limit)).all()
 
 
-@router.post("", status_code=201, response_model=ProductRead, dependencies=[Depends(require_write_token)])
+@router.post("", status_code=201, response_model=ProductRead, dependencies=[Depends(require_admin)])
 def create_product(data: ProductCreate, db: Database):
     try:
         return save_product(db, data)
@@ -30,7 +30,7 @@ def get_product(product_id: Identifier, db: Database):
     return product
 
 
-@router.patch("/{product_id}", response_model=ProductRead, dependencies=[Depends(require_write_token)])
+@router.patch("/{product_id}", response_model=ProductRead, dependencies=[Depends(require_admin)])
 def patch_product(product_id: Identifier, data: ProductPatch, db: Database):
     try:
         return save_product(db, data, product_id)
