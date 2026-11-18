@@ -61,3 +61,8 @@ def require_staff(principal: Annotated[Principal, Depends(get_principal)]) -> No
 def require_admin(principal: Annotated[Principal, Depends(get_principal)]) -> None:
     if principal.role != "admin":
         raise HTTPException(403, "Administrator access is required")
+
+
+def require_audit_read(request: Request, credentials: Credentials) -> None:
+    if not request.app.state.settings.public_demo:
+        require_staff(get_principal(request, credentials))

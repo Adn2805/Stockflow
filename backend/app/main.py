@@ -6,6 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
 from app.api import auth, inventory, orders, products, reports
@@ -19,8 +20,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.settings = settings if settings is not None else Settings()
+        db_url = make_url(app.state.settings.database_url.get_secret_value())
+        if app.state.settings.public_demo:
+            options = db_url.query.get("options", "")
+            db_url = db_url.update_query_dict({
+                "options": f"{options} -c default_transaction_read_only=on".strip()
+            })
         app.state.engine = create_engine(
-            app.state.settings.database_url.get_secret_value(),
+            db_url,
             pool_pre_ping=True,
             hide_parameters=True,
             connect_args={"connect_timeout": 5},
@@ -33,6 +40,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(
         title="StockFlow", version="0.1.0", lifespan=lifespan, max_body_size=32 * 1024
     )
+    @app.middleware("http")
+    async def enforce_demo_read_only(request: Request, call_next):
+        if request.app.state.settings.public_demo and request.method not in {"GET", "HEAD", "OPTIONS"}:
+            return JSONResponse({"detail": "The public demo is read-only"}, status_code=403)
+        return await call_next(request)
+
     app.add_middleware(
         CORSMiddleware, allow_origins=settings.cors_origins if settings is not None else configured_origins(),
         allow_methods=["GET", "POST", "PATCH"], allow_headers=["Authorization", "Idempotency-Key"],
@@ -57,6 +70,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if isinstance(exc, OperationalError):
             return JSONResponse(status_code=503, content={"detail": "Database unavailable"})
         return JSONResponse(status_code=500, content={"detail": "Database operation failed"})
+
+    @app.get("/live", tags=["health"])
+    def liveness():
+        return {"status": "ok"}
 
     @app.get("/health", tags=["health"])
     def health(db: Database):

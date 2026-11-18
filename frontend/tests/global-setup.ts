@@ -13,7 +13,7 @@ export default async function setup() {
   const python = process.env.STOCKFLOW_TEST_PYTHON || 'python'
   const backend = fileURLToPath(new URL('../../backend/', import.meta.url))
   process.env.STOCKFLOW_E2E_PASSWORD = randomBytes(24).toString('hex')
-  const environment = { ...process.env, PYTHONPATH: '.', DATABASE_URL: database.toString(), WRITE_TOKEN: '' }
+  const environment = { ...process.env, PYTHONPATH: '.', DATABASE_URL: database.toString(), WRITE_TOKEN: '', PUBLIC_DEMO: process.env.STOCKFLOW_E2E_DEMO || 'false' }
 
   function schemaCommand(action: 'prepare' | 'cleanup') {
     const result = spawnSync(python, ['tests/e2e_database.py', action, schema], {

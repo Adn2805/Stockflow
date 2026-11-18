@@ -2,7 +2,7 @@ from os import getenv
 from typing import Annotated
 from urllib.parse import urlsplit
 
-from pydantic import SecretStr, field_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     cors_origins: Annotated[list[str], NoDecode] = []
     database_url: SecretStr
     write_token: SecretStr | None = None
+    public_demo: bool = False
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -57,3 +58,21 @@ class Settings(BaseSettings):
         if value is not None and len(value.get_secret_value()) < 32:
             raise ValueError("WRITE_TOKEN must be at least 32 characters")
         return value
+
+
+    @model_validator(mode="after")
+    def validate_demo_configuration(self):
+        if self.public_demo and self.write_token is not None:
+            raise ValueError("WRITE_TOKEN must be unset in public demo mode")
+        if self.public_demo:
+            database = make_url(self.database_url.get_secret_value())
+            if database.host not in {"localhost", "127.0.0.1", "::1", "db"}:
+                if database.query.get("sslmode") != "verify-full":
+                    raise ValueError("Hosted demo PostgreSQL requires sslmode=verify-full")
+                if database.username != "stockflow_demo_reader":
+                    raise ValueError("Hosted demo PostgreSQL requires the dedicated reader role")
+                if not self.cors_origins or any(
+                    not origin.startswith("https://") for origin in self.cors_origins
+                ):
+                    raise ValueError("Hosted demo requires explicit HTTPS frontend origins")
+        return self

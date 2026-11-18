@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select, text
 
-from app.api.dependencies import Database, Page, require_staff
+from app.api.dependencies import Database, Page, require_audit_read
 from app.models import StockMovement
 from app.schemas import Identifier
 
-router = APIRouter(prefix="/reports", tags=["reports"], dependencies=[Depends(require_staff)])
+router = APIRouter(prefix="/reports", tags=["reports"], dependencies=[Depends(require_audit_read)])
 
 
 class MovementRead(BaseModel):

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.schema import CreateSchema, DropSchema
 
 from app.auth import User, password_hasher
+from app.seed_demo import seed
 from app.models import Inventory, Product, StockMovement, Warehouse
 
 
@@ -42,6 +43,10 @@ def main():
                 config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
                 config.attributes["connection"] = db
                 command.upgrade(config, "head")
+            if os.getenv("PUBLIC_DEMO") == "true":
+                with Session(engine) as db:
+                    seed(db)
+                return
             with Session(engine) as db, db.begin():
                 password_hash = password_hasher.hash(os.environ["STOCKFLOW_E2E_PASSWORD"])
                 db.add_all([User(username=role, role=role, password_hash=password_hash)

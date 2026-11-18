@@ -4,7 +4,7 @@ import {
   History, LayoutDashboard, LogIn, LogOut, Package, Plus, RefreshCw, ShoppingCart, Warehouse as WarehouseIcon, X,
 } from 'lucide-react'
 import {
-  ApiError, listAll, request, type Account, type Balance, type Discrepancy, type Movement,
+  ApiError, listAll, publicDemo, request, type Account, type Balance, type Discrepancy, type Movement,
   type Order, type Product, type Warehouse,
 } from './api'
 import { Empty, formatDate, formatNumber as n, label, Notice, signed, Status, Table } from './components'
@@ -90,6 +90,7 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState<number>()
   const token = account?.access_token
+  const auditVisible = operational || publicDemo
   const admin = account?.role === 'admin'
   const refresh = () => setVersion(value => value + 1)
   const move = (target: View) => { setView(target); setNotice(''); setError('') }
@@ -108,9 +109,9 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
           listAll<Product>('/products', token, signal),
           listAll<Warehouse>('/warehouses', token, signal),
           listAll<Balance>('/inventory', token, signal),
-          operational ? listAll<Order>('/orders', token, signal) : [],
-          operational ? listAll<Movement>('/reports/stock-movements', token, signal) : [],
-          operational ? listAll<Discrepancy>('/reports/reconciliation', token, signal) : [],
+          auditVisible ? listAll<Order>('/orders', token, signal) : [],
+          auditVisible ? listAll<Movement>('/reports/stock-movements', token, signal) : [],
+          auditVisible ? listAll<Discrepancy>('/reports/reconciliation', token, signal) : [],
         ])
         if (!signal.aborted) setSnapshot({ products, warehouses, balances, orders, movements, discrepancies })
       } catch (error) {
@@ -121,7 +122,7 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
     }
     void load()
     return () => controller.abort()
-  }, [token, operational, version])
+  }, [token, auditVisible, version])
 
   async function transition(order: Order, action: 'fulfill' | 'cancel') {
     setBusy(order.id)
@@ -136,7 +137,8 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
     } finally { setBusy(undefined) }
   }
 
-  const links = operational ? navigation : navigation.slice(0, 3)
+  const links = operational ? navigation : publicDemo
+    ? navigation.filter(link => link.name !== 'Create order') : navigation.slice(0, 3)
   return <div className="layout">
     <aside className="sidebar">
       <div className="brand"><div className="brand-icon"><Boxes size={25} /></div><span>StockFlow</span></div>
@@ -152,12 +154,12 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
       <header className="topbar">
         <div className="breadcrumb"><span>Workspace</span><b>/</b>{view}</div>
         <div className="account">
-          <span className="account-name">{account?.username ?? 'Guest view'}</span>
+          <span className="account-name">{account?.username ?? (publicDemo ? 'Read-only demo' : 'Guest view')}</span>
           {account ? <>
             <Status value={account.role} />
             <button className="icon-button" type="button" aria-label="Sign out" title="Sign out"
               disabled={signingOut} onClick={signOut}><LogOut size={17} /></button>
-          </> : <button type="button" className="secondary" onClick={openLogin}><LogIn size={16} /> Sign in</button>}
+          </> : !publicDemo && <button type="button" className="secondary" onClick={openLogin}><LogIn size={16} /> Sign in</button>}
         </div>
       </header>
       <div className="content">
@@ -169,12 +171,13 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
             {view === 'Overview' && operational && <button className="primary" onClick={() => move('Create order')}><Plus size={17} /> New order</button>}
             {view === 'Products' && admin && <button className="primary" onClick={() => setEditor({ kind: 'product' })}><Plus size={17} /> New product</button>}
             {view === 'Inventory' && operational && <button className="primary" onClick={() => setEditor({ kind: 'receipt' })}><ArrowDownToLine size={17} /> Receive stock</button>}
-            {view === 'Orders' && <button className="primary" onClick={() => move('Create order')}><Plus size={17} /> New order</button>}
+            {view === 'Orders' && operational && <button className="primary" onClick={() => move('Create order')}><Plus size={17} /> New order</button>}
           </div>
         </div>
+        {publicDemo && view === 'Overview' && <Notice>Synthetic warehouse data. Explore stock, order history, and reconciliation.</Notice>}
         {(notice || sessionNotice) && <Notice>{notice || sessionNotice}</Notice>}
         {error && <Notice error>{error}</Notice>}
-        {loading && <div className="loading" role="status"><span /> Loading warehouse data…</div>}
+        {loading && <div className="loading" role="status"><span /> {publicDemo ? 'Loading demo data. A cold start can take about a minute.' : 'Loading warehouse data…'}</div>}
         {snapshot && <Screens data={snapshot} view={view} move={move} admin={admin} operational={operational}
           token={token} busy={busy} transition={transition}
           editProduct={product => setEditor({ kind: 'product', product })}
@@ -204,7 +207,7 @@ function Screens({ data, view, move, admin, operational, token, busy, transition
 
   switch (view) {
     case 'Overview':
-      return <Overview data={data} operational={operational} move={move} productName={productName} warehouseName={warehouseName} />
+      return <Overview data={data} operational={operational || publicDemo} move={move} productName={productName} warehouseName={warehouseName} />
     case 'Products':
       return <Table columns={['Product', 'SKU', 'Unit price', ...(admin ? ['Actions'] : [])]} rows={data.products}
         empty="No products yet." render={product => <tr key={product.id}>
@@ -226,16 +229,16 @@ function Screens({ data, view, move, admin, operational, token, busy, transition
           : <Empty>Set up a warehouse and product before creating an order.</Empty>}
       </section>
     case 'Orders':
-      return <Table columns={['Order', 'Warehouse', 'Products', 'Status', 'Actions']} rows={[...data.orders].reverse()}
+      return <Table columns={['Order', 'Warehouse', 'Products', 'Status', ...(operational ? ['Actions'] : [])]} rows={[...data.orders].reverse()}
         empty="No orders yet." render={order => <tr key={order.id}>
           <td><strong>#{order.id} · {order.customer_reference}</strong><small>{formatDate(order.created_at)}</small></td>
           <td>{warehouseName(order.warehouse_id)}</td>
           <td>{order.items.map(item => <small key={item.product_id}>{n(item.quantity)} × {productName(item.product_id)} · {item.unit_price_snapshot} each</small>)}</td>
           <td><Status value={order.status} /></td>
-          <td>{order.status === 'RESERVED' && <div className="row-actions">
+          {operational && <td>{order.status === 'RESERVED' && <div className="row-actions">
             <button className="secondary compact" disabled={busy !== undefined} onClick={() => transition(order, 'fulfill')}>Fulfill</button>
             <button className="secondary compact danger" disabled={busy !== undefined} onClick={() => transition(order, 'cancel')}>Cancel</button>
-          </div>}</td>
+          </div>}</td>}
         </tr>} />
     case 'Stock movements':
       return <Table columns={['Movement', 'Product', 'Warehouse', 'On-hand change', 'Reserved change', 'Order']}
