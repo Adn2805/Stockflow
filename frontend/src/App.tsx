@@ -4,7 +4,7 @@ import {
   History, LayoutDashboard, LogIn, LogOut, Package, Plus, RefreshCw, ShoppingCart, Warehouse as WarehouseIcon, X,
 } from 'lucide-react'
 import {
-  ApiError, listAll, publicDemo, request, type Account, type Balance, type Discrepancy, type Movement,
+  ApiError, listAll, publicDemo, request, staticDemo, type Account, type Balance, type Discrepancy, type Movement,
   type Order, type Product, type Warehouse,
 } from './api'
 import { Empty, formatDate, formatNumber as n, label, Notice, signed, Status, Table } from './components'
@@ -154,7 +154,7 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
       <header className="topbar">
         <div className="breadcrumb"><span>Workspace</span><b>/</b>{view}</div>
         <div className="account">
-          <span className="account-name">{account?.username ?? (publicDemo ? 'Read-only demo' : 'Guest view')}</span>
+          <span className="account-name">{account?.username ?? (publicDemo ? staticDemo ? 'Static demo' : 'Read-only demo' : 'Guest view')}</span>
           {account ? <>
             <Status value={account.role} />
             <button className="icon-button" type="button" aria-label="Sign out" title="Sign out"
@@ -166,18 +166,18 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
         <div className="page-heading">
           <div><h1>{view === 'Overview' ? 'Warehouse overview' : view}</h1><p>{descriptions[view]}</p></div>
           <div className="page-actions">
-            <button type="button" className="icon-button outline" aria-label="Refresh data" title="Refresh data"
-              disabled={loading} onClick={refresh}><RefreshCw size={17} /></button>
+            {!staticDemo && <button type="button" className="icon-button outline" aria-label="Refresh data" title="Refresh data"
+              disabled={loading} onClick={refresh}><RefreshCw size={17} /></button>}
             {view === 'Overview' && operational && <button className="primary" onClick={() => move('Create order')}><Plus size={17} /> New order</button>}
             {view === 'Products' && admin && <button className="primary" onClick={() => setEditor({ kind: 'product' })}><Plus size={17} /> New product</button>}
             {view === 'Inventory' && operational && <button className="primary" onClick={() => setEditor({ kind: 'receipt' })}><ArrowDownToLine size={17} /> Receive stock</button>}
             {view === 'Orders' && operational && <button className="primary" onClick={() => move('Create order')}><Plus size={17} /> New order</button>}
           </div>
         </div>
-        {publicDemo && view === 'Overview' && <Notice>Synthetic warehouse data. Explore stock, order history, and reconciliation.</Notice>}
+        {publicDemo && view === 'Overview' && <Notice>{staticDemo ? 'Synthetic snapshot. Balances and order history are fixed for this demo.' : 'Synthetic warehouse data. Explore stock, order history, and reconciliation.'}</Notice>}
         {(notice || sessionNotice) && <Notice>{notice || sessionNotice}</Notice>}
         {error && <Notice error>{error}</Notice>}
-        {loading && <div className="loading" role="status"><span /> {publicDemo ? 'Loading demo data. A cold start can take about a minute.' : 'Loading warehouse data…'}</div>}
+        {loading && <div className="loading" role="status"><span /> {publicDemo && !staticDemo ? 'Loading demo data. A cold start can take about a minute.' : 'Loading warehouse data…'}</div>}
         {snapshot && <Screens data={snapshot} view={view} move={move} admin={admin} operational={operational}
           token={token} busy={busy} transition={transition}
           editProduct={product => setEditor({ kind: 'product', product })}

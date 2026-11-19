@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests',
-  testIgnore: '**/public-demo.spec.ts',
+  testIgnore: ['**/public-demo.spec.ts', '**/static-demo.spec.ts'],
   workers: 1,
   globalSetup: './tests/global-setup.ts',
   use: {

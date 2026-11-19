@@ -6,8 +6,10 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "build:static": "tsc --noEmit && vite build --mode static",
     "test": "playwright test",
-    "test:demo": "playwright test --config playwright.demo.config.ts"
+    "test:demo": "playwright test --config playwright.demo.config.ts",
+    "test:static": "playwright test --config playwright.static.config.ts"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

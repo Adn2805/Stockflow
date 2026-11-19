@@ -17,7 +17,8 @@ export type Discrepancy = {
   expected_on_hand: number; expected_reserved: number
 }
 
-export const publicDemo = import.meta.env.VITE_PUBLIC_DEMO === 'true'
+export const staticDemo = import.meta.env.MODE === 'static'
+export const publicDemo = staticDemo || import.meta.env.VITE_PUBLIC_DEMO === 'true'
 const base = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '')
 
 export class ApiError extends Error {
@@ -53,6 +54,12 @@ export async function request<T>(path: string, token?: string, options: RequestI
 }
 
 export async function listAll<T>(path: string, token: string | undefined, signal: AbortSignal) {
+  if (staticDemo) {
+    const { default: snapshot } = await import('./demo-snapshot.json')
+    const rows = (snapshot as Record<string, unknown[]>)[path]
+    if (!rows) throw new Error('This data is unavailable in the static snapshot.')
+    return rows as T[]
+  }
   const pageSize = 100
   const rows: T[] = []
   for (let offset = 0; ; offset += pageSize) {

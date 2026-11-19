@@ -2,6 +2,14 @@
 
 The public build exposes synthetic catalog, inventory, order history, stock movements, and reconciliation without an account. The hosted API rejects all mutating methods, including login. Keep account-based order workflows in the local project and the isolated browser tests.
 
+## Published static demo
+
+[StockFlow on Cloudflare Pages](https://stockflow-adn2805.pages.dev/) serves a fixed synthetic snapshot. The public build makes no API calls. Render remains undeployed, and the Neon reader credential stays local.
+
+Run `npm ci` and `npm run build:static` from `frontend`, then upload the contents of `dist` as a production deployment to the existing Pages project. Archive those files at the ZIP root. The static build keeps generated assets flat because the first Pages ZIP upload stored nested Windows asset paths incorrectly. The snapshot can be regenerated with `python deploy/export_snapshot.py` from the root using the local PostgreSQL test database.
+
+The public smoke test passed on 19 November 2026. It opened all dashboard views and observed zero backend requests. To repeat it, set `STOCKFLOW_STATIC_ORIGIN=https://stockflow-adn2805.pages.dev` and run `npm run test:static` from `frontend`.
+
 ## Free-tier plan
 
 Verified from provider documentation on 19 November 2026 (IST). Confirm the signed-in plan and any account-specific verification prompts before creating resources.

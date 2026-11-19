@@ -4,7 +4,7 @@ StockFlow is an inventory and order reliability project for warehouses and small
 
 ## Portfolio demo
 
-Public deployment is awaiting approval. The [deployment runbook](docs/deployment.md) covers the free-tier limits, read-only safeguards, account setup, and live verification.
+[Open the public StockFlow demo](https://stockflow-adn2805.pages.dev/). It runs on Cloudflare Pages Free and displays a fixed synthetic snapshot. Run the local stack for authentication and write operations. See the [deployment runbook](docs/deployment.md) for build and verification steps.
 
 ![Local read-only StockFlow dashboard with synthetic data](docs/stockflow-demo.png)
 
