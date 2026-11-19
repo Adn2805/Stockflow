@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
-from app.api import auth, inventory, orders, products, reports
+from app.api import auth, inventory, orders, products, replenishment, reports
 from app.api.dependencies import Database
 from app.core.config import Settings, configured_origins
 
@@ -55,6 +55,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(products.router)
     app.include_router(inventory.router)
     app.include_router(orders.router)
+    app.include_router(replenishment.router)
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(_: Request, exc: RequestValidationError):

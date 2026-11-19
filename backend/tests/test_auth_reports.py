@@ -72,6 +72,12 @@ def test_role_permissions_and_existing_order_workflow(accounts, warehouse):
     product_id = created.json()["id"]
     assert api.patch(f"/products/{product_id}", headers=staff, json={"name": "Changed"}).status_code == 403
     assert api.get("/products", headers=guest).json() == [created.json()]
+    policy_path = f"/replenishment/policies/{product_id}/{warehouse.id}"
+    policy = {"threshold": 0, "target": 10}
+    for role in (staff, guest):
+        assert api.get("/replenishment/recommendations", headers=role).status_code == 403
+        assert api.patch(policy_path, json=policy, headers=role).status_code == 403
+    assert api.patch(policy_path, json=policy, headers=admin).status_code == 200
     receipt = {"product_id": product_id, "warehouse_id": warehouse.id, "quantity": 5}
     assert api.post("/inventory/receipts", headers=guest, json=receipt).status_code == 403
     assert api.post("/inventory/receipts", headers=staff, json=receipt).status_code == 201

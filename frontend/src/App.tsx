@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowDownToLine, ArrowRight, ArrowUpRight, Box, Boxes, ClipboardCheck, ClipboardList,
-  History, LayoutDashboard, LogIn, LogOut, Package, Plus, RefreshCw, ShoppingCart, Warehouse as WarehouseIcon, X,
+  Bell, History, LayoutDashboard, LogIn, LogOut, Package, Plus, RefreshCw, ShoppingCart, Warehouse as WarehouseIcon, X,
 } from 'lucide-react'
 import {
   ApiError, listAll, publicDemo, request, staticDemo, type Account, type Balance, type Discrepancy, type Movement,
   type Order, type Product, type Warehouse,
 } from './api'
 import { Empty, formatDate, formatNumber as n, label, Notice, signed, Status, Table } from './components'
+import { Replenishment } from './Replenishment'
 import { LoginForm, OrderForm, ProductForm, ReceiptForm } from './forms'
 
 const navigation = [
@@ -18,6 +19,7 @@ const navigation = [
   { name: 'Orders', icon: ClipboardList },
   { name: 'Stock movements', icon: History },
   { name: 'Reconciliation', icon: ClipboardCheck },
+  { name: 'Replenishment', icon: Bell },
 ] as const
 
 type View = typeof navigation[number]['name']
@@ -35,6 +37,7 @@ const descriptions: Record<View, string> = {
   Orders: 'Review reservations and fulfill or cancel orders.',
   'Stock movements': 'Inspect receipts, reservations, cancellations, and fulfillment.',
   Reconciliation: 'Compare current balances with stock movement totals.',
+  Replenishment: 'Configure stock thresholds, review drafts, and track Telegram delivery.',
 }
 
 function Modal({ title, close, children }: { title: string; close: () => void; children: ReactNode }) {
@@ -137,8 +140,8 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
     } finally { setBusy(undefined) }
   }
 
-  const links = operational ? navigation : publicDemo
-    ? navigation.filter(link => link.name !== 'Create order') : navigation.slice(0, 3)
+  const links = operational ? navigation.filter(link => admin || link.name !== 'Replenishment') : publicDemo
+    ? navigation.filter(link => !['Create order', 'Replenishment'].includes(link.name)) : navigation.slice(0, 3)
   return <div className="layout">
     <aside className="sidebar">
       <div className="brand"><div className="brand-icon"><Boxes size={25} /></div><span>StockFlow</span></div>
@@ -178,7 +181,9 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
         {(notice || sessionNotice) && <Notice>{notice || sessionNotice}</Notice>}
         {error && <Notice error>{error}</Notice>}
         {loading && <div className="loading" role="status"><span /> {publicDemo && !staticDemo ? 'Loading demo data. A cold start can take about a minute.' : 'Loading warehouse data…'}</div>}
-        {snapshot && <Screens data={snapshot} view={view} move={move} admin={admin} operational={operational}
+        {snapshot && view === 'Replenishment' && admin && token &&
+          <Replenishment products={snapshot.products} warehouses={snapshot.warehouses} token={token} version={version} />}
+        {snapshot && view !== 'Replenishment' && <Screens data={snapshot} view={view} move={move} admin={admin} operational={operational}
           token={token} busy={busy} transition={transition}
           editProduct={product => setEditor({ kind: 'product', product })}
           orderDone={message => { move('Orders'); done(message) }} />}

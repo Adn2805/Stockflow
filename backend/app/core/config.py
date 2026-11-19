@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     database_url: SecretStr
     write_token: SecretStr | None = None
     public_demo: bool = False
+    telegram_bot_token: SecretStr | None = None
+    telegram_chat_id: SecretStr | None = None
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -62,6 +64,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_demo_configuration(self):
+        if self.public_demo and (self.telegram_bot_token or self.telegram_chat_id):
+            raise ValueError("Telegram credentials must be unset in public demo mode")
         if self.public_demo and self.write_token is not None:
             raise ValueError("WRITE_TOKEN must be unset in public demo mode")
         if self.public_demo:

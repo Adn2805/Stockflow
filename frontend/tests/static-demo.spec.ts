@@ -19,7 +19,7 @@ test('static snapshot displays all audit screens with no backend requests', asyn
     await page.getByRole('navigation').getByRole('button', { name: screen, exact: true }).click()
     await expect(page.getByText(visible, { exact: false }).first()).toBeVisible()
   }
-  for (const name of ['Sign in', 'New order', 'Refresh data', 'Create order']) {
+  for (const name of ['Sign in', 'New order', 'Refresh data', 'Create order', 'Replenishment']) {
     await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0)
   }
   expect(apiCalls).toEqual([])

@@ -13,10 +13,13 @@ StockFlow is an inventory and order reliability project for warehouses and small
 ```mermaid
 flowchart LR
     Client[React dashboard] --> API[FastAPI routers]
-    API --> Services[Product and receipt services]
+    API --> Services[Catalog, inventory, orders and replenishment]
     Services --> DB[(PostgreSQL)]
     API --> DB
     Alembic --> DB
+    DB --> Worker[Telegram outbox worker]
+    Worker --> Telegram[Telegram Bot API]
+    Snapshot[Public static snapshot] --> Browser[Recruiter browser]
 ```
 
 The backend uses Python 3.12, FastAPI, Pydantic, SQLAlchemy 2, psycopg, Alembic, and Uvicorn. Routers handle HTTP responses, services own write transactions, and PostgreSQL enforces uniqueness and inventory bounds. API and PostgreSQL ports bind to loopback in Compose.
@@ -32,6 +35,8 @@ The backend uses Python 3.12, FastAPI, Pydantic, SQLAlchemy 2, psycopg, Alembic,
 | `order_items` | One row per order and product, with quantity and decimal price snapshot |
 | `stock_movements` | Receipt and order deltas linked to the inventory row |
 | `users` / `login_sessions` | Account roles, Argon2id password hashes, and expiring session digests |
+| `reorder_policies` / `replenishment_recommendations` | Per-warehouse thresholds and targets, with one active draft or approved recommendation per inventory pair |
+| `notification_outbox` | Committed Telegram alerts, worker leases, retry schedules, and delivery status |
 
 A new inventory row starts from zero and receives its first units in the same transaction. Subsequent receipts use a PostgreSQL upsert that adds the incoming quantity to the current row. The movement insert shares that transaction, so a failed movement rolls back the balance update. Available quantity is derived as `on_hand - reserved`. Product prices in API responses are JSON strings to preserve decimal precision.
 
@@ -88,13 +93,14 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. Vite proxies `/api` to http://127.0.0.1:8000. For a custom API port set `STOCKFLOW_API_TARGET` before starting Vite. A separately hosted frontend can use `VITE_API_BASE` and an explicit comma-separated `CORS_ORIGINS` allowlist on the backend. A production frontend bundle can be built with `npm run build`.
+Open http://127.0.0.1:5173. Vite reads `API_PORT` from the repository root `.env` for the `/api` proxy and defaults to port 8000. Set `STOCKFLOW_API_TARGET` before starting Vite to override the address. A separately hosted frontend can use `VITE_API_BASE` and an explicit comma-separated `CORS_ORIGINS` allowlist on the backend. A production frontend bundle can be built with `npm run build`.
 
 | Capability | Public / guest | Staff | Admin |
 | --- | --- | --- | --- |
 | View products, warehouses, and inventory | Yes | Yes | Yes |
 | Receive stock, process and view orders, inspect audit reports | | Yes | Yes |
 | Create and edit products | | | Yes |
+| Configure reorder policies, approve recommendations, and view Telegram delivery | | | Yes |
 
 The optional Phase 1 `WRITE_TOKEN` still works as an administrator credential for local automation. Leave it unset when using accounts alone. The API is local by default. Use synthetic customer references for demonstrations.
 
@@ -120,6 +126,10 @@ The optional Phase 1 `WRITE_TOKEN` still works as an administrator credential fo
 | POST | `/orders/{order_id}/fulfill` | Consume reserved stock |
 | GET | `/reports/stock-movements` | List recent ledger entries, with optional product and warehouse filters |
 | GET | `/reports/reconciliation` | Compare current balances against ledger totals and list discrepancies |
+| GET | `/replenishment/policies` | List thresholds and targets |
+| PATCH | `/replenishment/policies/{product_id}/{warehouse_id}` | Save a threshold and target |
+| GET | `/replenishment/recommendations` | List recommendations and alert delivery status |
+| POST | `/replenishment/recommendations/{recommendation_id}/approve` | Record approval without creating a purchase or changing stock |
 
 Order creation requires an `Idempotency-Key` header with 1–128 ASCII letters, digits, or the characters `._:-`. Example JSON body: `{"customer_reference":"demo-123","warehouse_id":1,"items":[{"product_id":1,"quantity":2}]}`. Use synthetic customer references for local demonstrations.
 
@@ -146,8 +156,16 @@ npm test
 
 The browser tests start their own API and dashboard on loopback ports 58081 and 55173. They generate their own account passwords and remove their test schema afterward. The dashboard fetches paginated API results for its overview totals.
 
+## Replenishment and Telegram
+
+Administrators configure a threshold and target for each product and warehouse. When available stock goes below the threshold, PostgreSQL opens a recommendation for the difference between the target and available stock and queues one alert. The draft, outbox entry, and balance change commit together. An independent worker sends Telegram notifications after commit. Approvals record a decision without purchasing stock. Recovering to the threshold closes the recommendation and suppresses pending retries.
+
+Configure `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in the private worker environment. Run `docker compose run --rm --build telegram-worker` from the repository root. To check outbox connectivity without sending, append `python -m app.telegram_worker --check-db`. The worker should use Compose's internal database address. See [Telegram setup and troubleshooting](docs/replenishment.md).
+
+The earlier live verification received Telegram HTTP 200 with `ok: true`; the single test outbox row reached `sent` on its first attempt. Automated tests mock Telegram. A lost response after Telegram accepts a message can still cause a duplicate on retry. Delivery status updates are visible when the dashboard refreshes. The public Pages snapshot has no worker, credentials, or connection to the private database.
+
 ## Concurrency and performance
 
-The local Phase 4 benchmark repeated the 500-request reservation burst twice. Each run accepted 100 one-unit reservations against 100 available units and returned 400 insufficient-stock responses. All committed inventory, orders, and ledger entries reconciled. See the [benchmark report](benchmarks/README.md) for the Locust results, reproduction commands, raw output, and limits.
+The Phase 6 pre-release run used `python benchmarks/concurrency.py` against isolated PostgreSQL 17.12 databases. Two 500-request bursts each returned 100 created orders and 400 insufficient-stock conflicts, taking 9.5151 s and 21.3474 s. The 32-request multi-product run returned 5 created orders and 27 conflicts. The 32-request same-key run created one order and replayed it 31 times. All four scenarios finished with zero invalid balances, ledger or reservation discrepancies, and duplicate keys. See the [benchmark report](benchmarks/README.md) for reproduction commands, measurement limits, and the historical Phase 4 Locust results.
 
 The [CI workflow](.github/workflows/ci.yml) runs PostgreSQL regression tests, the HTTP concurrency harness, the dashboard build, and Playwright smoke tests. The Locust matrix runs locally to keep the timing conditions under the operator's control.
