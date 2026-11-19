@@ -2,6 +2,12 @@
 
 StockFlow is an inventory and order reliability project for warehouses and small retailers. StockFlow manages its product catalog, inventory receipts, and order lifecycle on PostgreSQL. Its React and TypeScript dashboard connects to the same APIs for warehouse operations, audit history, and reconciliation. Each stock operation commits its balance changes alongside its ledger entries.
 
+## Portfolio demo
+
+[Open the public StockFlow demo](https://stockflow-adn2805.pages.dev/). It runs on Cloudflare Pages Free and displays a fixed synthetic snapshot. Run the local stack for authentication and write operations. See the [deployment runbook](docs/deployment.md) for build and verification steps.
+
+![Local read-only StockFlow dashboard with synthetic data](docs/stockflow-demo.png)
+
 ## Architecture
 
 ```mermaid
@@ -96,6 +102,7 @@ The optional Phase 1 `WRITE_TOKEN` still works as an administrator credential fo
 
 | Method | Path | Behavior |
 | --- | --- | --- |
+| GET | `/live` | Check API liveness without connecting to PostgreSQL |
 | GET | `/health` | Check database connectivity |
 | POST | `/auth/login` | Exchange username and password for a bearer token |
 | POST | `/auth/logout` | Revoke the active session |

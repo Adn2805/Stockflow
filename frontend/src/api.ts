@@ -17,6 +17,8 @@ export type Discrepancy = {
   expected_on_hand: number; expected_reserved: number
 }
 
+export const staticDemo = import.meta.env.MODE === 'static'
+export const publicDemo = staticDemo || import.meta.env.VITE_PUBLIC_DEMO === 'true'
 const base = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '')
 
 export class ApiError extends Error {
@@ -27,7 +29,20 @@ export async function request<T>(path: string, token?: string, options: RequestI
   const headers = new Headers(options.headers)
   if (token) headers.set('Authorization', 'Bearer ' + token)
   if (options.body) headers.set('Content-Type', 'application/json')
-  const response = await fetch(base + path, { ...options, headers })
+  const deadline = AbortSignal.timeout(publicDemo ? 75_000 : 15_000)
+  const signal = options.signal ? AbortSignal.any([options.signal, deadline]) : deadline
+  let response: Response
+  try {
+    response = await fetch(base + path, { ...options, headers, signal })
+  } catch (error) {
+    if (publicDemo && !options.signal?.aborted) {
+      throw new Error('The demo API is unavailable or still waking up. Use Refresh data to try again.')
+    }
+    throw error
+  }
+  if (publicDemo && (response.status >= 500 || !response.headers.get('content-type')?.includes('application/json'))) {
+    throw new Error('The demo API is unavailable or still waking up. Use Refresh data to try again.')
+  }
   if (!response.ok) {
     const body = await response.json().catch(() => null)
     const issue = body?.issues?.[0]
@@ -39,6 +54,12 @@ export async function request<T>(path: string, token?: string, options: RequestI
 }
 
 export async function listAll<T>(path: string, token: string | undefined, signal: AbortSignal) {
+  if (staticDemo) {
+    const { default: snapshot } = await import('./demo-snapshot.json')
+    const rows = (snapshot as Record<string, unknown[]>)[path]
+    if (!rows) throw new Error('This data is unavailable in the static snapshot.')
+    return rows as T[]
+  }
   const pageSize = 100
   const rows: T[] = []
   for (let offset = 0; ; offset += pageSize) {

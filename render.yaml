@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: stockflow-demo-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    dockerCommand: sh -c 'exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-10000}" --no-proxy-headers'
+    autoDeployTrigger: "off"
+    healthCheckPath: /live
+    envVars:
+      - key: PUBLIC_DEMO
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
