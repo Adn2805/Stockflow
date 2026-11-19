@@ -50,6 +50,9 @@ def test_public_demo_reads_consistent_synthetic_data_and_rejects_all_mutations(d
         movements = api.get("/reports/stock-movements").json()
         assert len(movements) == 20
         assert api.get("/reports/reconciliation").json() == []
+        forged_session = {"Authorization": "Bearer sf_" + "x" * 43}
+        assert api.get("/replenishment/policies", headers=forged_session).status_code == 403
+        assert api.get("/replenishment/recommendations", headers=forged_session).status_code == 403
         for method, route in (
             ("POST", "/auth/login"), ("POST", "/auth/logout"), ("POST", "/products"),
             ("PATCH", "/products/1"), ("POST", "/inventory/receipts"), ("POST", "/orders"),

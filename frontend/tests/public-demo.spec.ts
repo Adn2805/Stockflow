@@ -5,7 +5,7 @@ test('public demo shows synthetic audit data without write controls', async ({ p
   await expect(page.getByText('Read-only demo', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Recent stock movements' })).toBeVisible()
   await expect(page.getByText('Synthetic warehouse data.', { exact: false })).toBeVisible()
-  for (const label of ['Sign in', 'New order', 'Create order', 'Receive stock']) {
+  for (const label of ['Sign in', 'New order', 'Create order', 'Receive stock', 'Replenishment']) {
     await expect(page.getByRole('button', { name: label, exact: true })).toHaveCount(0)
   }
   const screenshot = process.env.STOCKFLOW_DEMO_SCREENSHOT

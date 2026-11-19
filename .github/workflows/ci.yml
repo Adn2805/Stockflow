@@ -56,7 +56,9 @@ jobs:
           npm run build
           npx playwright install --with-deps chromium
           npm test
-           npm run test:demo
+          npm run test:demo
+          npm run build:static
+          npm run test:static
       - name: Retain test evidence
         if: always()
         uses: actions/upload-artifact@v6

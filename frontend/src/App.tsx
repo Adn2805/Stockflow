@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowDownToLine, ArrowRight, ArrowUpRight, Box, Boxes, ClipboardCheck, ClipboardList,
-  History, LayoutDashboard, LogIn, LogOut, Package, Plus, RefreshCw, ShoppingCart, Warehouse as WarehouseIcon, X,
+  Bell, ChevronRight, History, LayoutDashboard, LogIn, LogOut, Package, Plus, RefreshCw, ShoppingCart, Warehouse as WarehouseIcon, X,
 } from 'lucide-react'
 import {
   ApiError, listAll, publicDemo, request, staticDemo, type Account, type Balance, type Discrepancy, type Movement,
   type Order, type Product, type Warehouse,
 } from './api'
 import { Empty, formatDate, formatNumber as n, label, Notice, signed, Status, Table } from './components'
+import { Replenishment } from './Replenishment'
+import { EngineeringOverview } from './EngineeringOverview'
 import { LoginForm, OrderForm, ProductForm, ReceiptForm } from './forms'
 
 const navigation = [
@@ -18,6 +20,7 @@ const navigation = [
   { name: 'Orders', icon: ClipboardList },
   { name: 'Stock movements', icon: History },
   { name: 'Reconciliation', icon: ClipboardCheck },
+  { name: 'Replenishment', icon: Bell },
 ] as const
 
 type View = typeof navigation[number]['name']
@@ -35,14 +38,19 @@ const descriptions: Record<View, string> = {
   Orders: 'Review reservations and fulfill or cancel orders.',
   'Stock movements': 'Inspect receipts, reservations, cancellations, and fulfillment.',
   Reconciliation: 'Compare current balances with stock movement totals.',
+  Replenishment: 'Configure stock thresholds, review drafts, and track Telegram delivery.',
 }
 
-function Modal({ title, close, children }: { title: string; close: () => void; children: ReactNode }) {
+function Modal({ title, close, children, signIn = false }: {
+  title: string; close: () => void; children: ReactNode; signIn?: boolean
+}) {
   const ref = useRef<HTMLDialogElement>(null)
   useEffect(() => { ref.current?.showModal() }, [])
-  return <dialog ref={ref} aria-labelledby="dialog-title" onCancel={event => { event.preventDefault(); close() }}>
-    <div className="dialog-header"><h2 id="dialog-title">{title}</h2>
-      <button className="icon-button" type="button" aria-label="Close dialog" onClick={close}><X size={20} /></button>
+  return <dialog ref={ref} aria-labelledby="dialog-title" onClose={close}>
+    <div className="dialog-header">
+      {signIn && <span className="brand-icon"><LogIn size={19} aria-hidden="true" /></span>}
+      <h2 id="dialog-title">{title}</h2>
+      <button className="icon-button" type="button" aria-label="Close dialog" onClick={() => ref.current?.close()}><X size={20} /></button>
     </div>
     {children}
   </dialog>
@@ -137,22 +145,22 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
     } finally { setBusy(undefined) }
   }
 
-  const links = operational ? navigation : publicDemo
-    ? navigation.filter(link => link.name !== 'Create order') : navigation.slice(0, 3)
+  const links = operational ? navigation.filter(link => admin || link.name !== 'Replenishment') : publicDemo
+    ? navigation.filter(link => !['Create order', 'Replenishment'].includes(link.name)) : navigation.slice(0, 3)
   return <div className="layout">
     <aside className="sidebar">
       <div className="brand"><div className="brand-icon"><Boxes size={25} /></div><span>StockFlow</span></div>
       <nav aria-label="Dashboard">
         {links.map(({ name, icon: Icon }) => <button type="button" key={name}
           aria-current={view === name ? 'page' : undefined} onClick={() => move(name)}>
-          <Icon size={18} /><span>{name}</span>
+          <Icon size={18} aria-hidden="true" /><span>{name}</span>
         </button>)}
       </nav>
       <div className="sidebar-bottom"><WarehouseIcon size={18} /><span>Warehouse workspace</span></div>
     </aside>
     <main>
       <header className="topbar">
-        <div className="breadcrumb"><span>Workspace</span><b>/</b>{view}</div>
+        <div className="breadcrumb"><span>Workspace</span><ChevronRight size={14} aria-hidden="true" />{view}</div>
         <div className="account">
           <span className="account-name">{account?.username ?? (publicDemo ? staticDemo ? 'Static demo' : 'Read-only demo' : 'Guest view')}</span>
           {account ? <>
@@ -163,8 +171,10 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
         </div>
       </header>
       <div className="content">
+        {publicDemo && view === 'Overview' && <EngineeringOverview />}
         <div className="page-heading">
-          <div><h1>{view === 'Overview' ? 'Warehouse overview' : view}</h1><p>{descriptions[view]}</p></div>
+          <div>{publicDemo && view === 'Overview' ? <h2 id="warehouse-data" tabIndex={-1}>Warehouse overview</h2>
+            : <h1>{view === 'Overview' ? 'Warehouse overview' : view}</h1>}<p>{descriptions[view]}</p></div>
           <div className="page-actions">
             {!staticDemo && <button type="button" className="icon-button outline" aria-label="Refresh data" title="Refresh data"
               disabled={loading} onClick={refresh}><RefreshCw size={17} /></button>}
@@ -175,16 +185,19 @@ function Dashboard({ account, operational, login, openLogin, closeLogin, signedI
           </div>
         </div>
         {publicDemo && view === 'Overview' && <Notice>{staticDemo ? 'Synthetic snapshot. Balances and order history are fixed for this demo.' : 'Synthetic warehouse data. Explore stock, order history, and reconciliation.'}</Notice>}
-        {(notice || sessionNotice) && <Notice>{notice || sessionNotice}</Notice>}
+        {notice && <Notice tone="success">{notice}</Notice>}
+        {!notice && sessionNotice && <Notice>{sessionNotice}</Notice>}
         {error && <Notice error>{error}</Notice>}
         {loading && <div className="loading" role="status"><span /> {publicDemo && !staticDemo ? 'Loading demo data. A cold start can take about a minute.' : 'Loading warehouse data…'}</div>}
-        {snapshot && <Screens data={snapshot} view={view} move={move} admin={admin} operational={operational}
+        {snapshot && view === 'Replenishment' && admin && token &&
+          <Replenishment products={snapshot.products} warehouses={snapshot.warehouses} token={token} version={version} />}
+        {snapshot && view !== 'Replenishment' && <Screens data={snapshot} view={view} move={move} admin={admin} operational={operational}
           token={token} busy={busy} transition={transition}
           editProduct={product => setEditor({ kind: 'product', product })}
           orderDone={message => { move('Orders'); done(message) }} />}
       </div>
     </main>
-    {login && <Modal title="Sign in to StockFlow" close={closeLogin}><LoginForm signedIn={signedIn} close={closeLogin} /></Modal>}
+    {login && <Modal title="Sign in to StockFlow" close={closeLogin} signIn><LoginForm signedIn={signedIn} close={closeLogin} /></Modal>}
     {editor?.kind === 'product' && token && <Modal title={editor.product ? 'Edit product' : 'New product'} close={() => setEditor(undefined)}>
       <ProductForm product={editor.product} token={token} done={done} close={() => setEditor(undefined)} />
     </Modal>}
@@ -250,7 +263,7 @@ function Screens({ data, view, move, admin, operational, token, busy, transition
         </tr>} />
     case 'Reconciliation':
       return <>
-        <Notice>{data.discrepancies.length ? n(data.discrepancies.length) + ' stock discrepancies found.'
+        <Notice tone={data.discrepancies.length ? 'warning' : 'success'}>{data.discrepancies.length ? n(data.discrepancies.length) + ' stock discrepancies found.'
           : 'All inventory balances match the ledger.'}</Notice>
         <Table columns={['Product', 'Warehouse', 'Actual on hand', 'Expected on hand', 'Actual reserved', 'Expected reserved']}
           rows={data.discrepancies} empty="No discrepancies found." render={row => <tr key={row.product_id + ':' + row.warehouse_id}>
@@ -270,17 +283,17 @@ function Overview({ data, operational, move, productName, warehouseName }: {
   const reserved = data.balances.reduce((sum, row) => sum + row.reserved, 0)
   const lowStock = data.balances.filter(row => row.available <= 5).sort((a, b) => a.available - b.available)
   const cards = [
-    { label: 'Total products', value: data.products.length, icon: Package, tone: 'green', to: 'Products' },
-    { label: 'Available units', value: total - reserved, icon: Boxes, tone: 'mint', to: 'Inventory' },
-    { label: 'Reserved units', value: reserved, icon: Box, tone: 'amber', to: 'Inventory' },
+    { label: 'Total products', value: data.products.length, icon: Package, accent: false, to: 'Products' },
+    { label: 'Available units', value: total - reserved, icon: Boxes, accent: true, to: 'Inventory' },
+    { label: 'Reserved units', value: reserved, icon: Box, accent: false, to: 'Inventory' },
     { label: operational ? 'Open orders' : 'Warehouses',
       value: operational ? data.orders.filter(order => order.status === 'RESERVED').length : data.warehouses.length,
-      icon: operational ? ClipboardList : WarehouseIcon, tone: 'blue', to: operational ? 'Orders' : 'Inventory' },
+      icon: operational ? ClipboardList : WarehouseIcon, accent: false, to: operational ? 'Orders' : 'Inventory' },
   ] as const
   return <>
     <div className="metrics">
-      {cards.map(({ label, value, icon: Icon, tone, to }) => <button className="metric surface" key={label} onClick={() => move(to)}>
-        <span className={'metric-icon ' + tone}><Icon size={19} /></span><ArrowUpRight className="metric-link" size={16} />
+      {cards.map(({ label, value, icon: Icon, accent, to }) => <button className={accent ? 'metric surface metric-accent' : 'metric surface'} key={label} onClick={() => move(to)}>
+        <span className="metric-icon"><Icon size={19} aria-hidden="true" /></span><ArrowUpRight className="metric-link" size={16} aria-hidden="true" />
         <strong>{n(value)}</strong><span className="metric-label">{label}</span>
       </button>)}
     </div>

@@ -1,0 +1,16 @@
+# Replenishment and Telegram
+
+Open **Replenishment** as an administrator to configure a reorder threshold and target available stock for a product and warehouse. Available stock equals on-hand minus reserved units. The threshold is exclusive. A zero threshold disables new alerts for that pair.
+
+A shortage opens one draft and one outbox message. Suggested units equal target available stock minus current available stock. Further stock changes update the active draft until approval. Approval freezes the draft for review without creating a purchase or changing inventory. Stock recovery closes the shortage and cancels pending or retrying notifications. A subsequent shortage can alert again.
+
+PostgreSQL updates the draft and outbox in the inventory transaction under the inventory row lock. Rolled-back changes never become eligible for delivery. The worker claims a committed row with a two-minute lease and closes that transaction before calling Telegram. It retries transient failures with exponential backoff, respects Telegram's retry delay, and marks permanent errors or exhausted attempts as failed. Telegram has no send-message idempotency key. If the worker loses the response or crashes after Telegram accepts a message, a retry can deliver a duplicate. A message already being sent can arrive after recovery.
+
+## Configure a private instance
+
+1. Apply migration `0004_replenishment` with `python -m alembic upgrade head` from `backend`. For Compose, rebuild the API and run `docker compose run --rm api alembic upgrade head` before recreating it with `docker compose up -d --build --no-deps api`. If the page reports **Not Found**, check the running API at `/openapi.json` for the `/replenishment` routes. A migrated database does not update an older API image.
+2. Create a bot with BotFather. Have the intended manager start a direct chat with the bot, or add the bot to a private manager group. Obtain the numeric chat ID from the bot's updates with a trusted local tool. Review group membership before enabling alerts. [Telegram bot setup](https://core.telegram.org/bots/tutorial)
+3. Export `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, and `TELEGRAM_CHAT_ID` in the worker process environment. Run `python -m app.telegram_worker` from `backend`. To process at most one message, add `--once`. For Compose, run `docker compose run --rm --build telegram-worker` from the repository root. Compose reads the two Telegram settings from the root `.env` or shell and supplies the internal PostgreSQL address `db:5432`. Avoid `run --env-from-file .env`, which overrides that address with the host-only URL. To verify the connection and outbox access without sending anything, run `docker compose run --rm --build telegram-worker python -m app.telegram_worker --check-db`.
+4. Set the threshold and target as admin. After a stock change, refresh the dashboard to view active shortages, draft approvals, notification status, attempt counts, and delivery times.
+
+Keep the bot token and chat ID out of source, frontend builds, and logs. Use one worker per configured chat under normal operation. Without a worker, notifications remain pending. The public demo is a static snapshot without replenishment or Telegram access.

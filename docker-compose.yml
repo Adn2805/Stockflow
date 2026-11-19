@@ -1,3 +1,5 @@
+x-stockflow-container-database: &stockflow-container-database postgresql+psycopg://stockflow:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/stockflow
+
 services:
   db:
     image: postgres:17
@@ -18,7 +20,7 @@ services:
   api:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg://stockflow:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/stockflow
+      DATABASE_URL: *stockflow-container-database
       WRITE_TOKEN: ${WRITE_TOKEN:-}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
     depends_on:
@@ -26,6 +28,18 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"
+
+  telegram-worker:
+    profiles: ["telegram"]
+    build: ./backend
+    command: ["python", "-m", "app.telegram_worker"]
+    environment:
+      DATABASE_URL: *stockflow-container-database
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
