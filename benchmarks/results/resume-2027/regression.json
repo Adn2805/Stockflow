@@ -1,0 +1,394 @@
+{
+  "application_commit": "abfcd38dc59064062c887eb4a5e9535d7620e52f",
+  "recorded_at_utc": "2026-11-19T13:13:41.903186+00:00",
+  "browser": "Microsoft Edge, Playwright",
+  "builds": {
+    "npm run build": "passed",
+    "npm run build:static": "passed"
+  },
+  "backend_warning": "Starlette TestClient httpx deprecation",
+  "suites": [
+    {
+      "command": "python -m pytest -ra",
+      "counts": {
+        "passed": 62
+      },
+      "cases": [
+        {
+          "suite": "tests.test_api",
+          "test": "test_product_lifecycle",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_duplicate_sku_is_case_insensitive",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_receipts_accumulate_and_write_movements",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_receipt_rolls_back_if_movement_fails",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_concurrent_first_receipts_preserve_each_increment",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_receipt_overflow_keeps_balance_and_history",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_product[fields0]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_product[fields1]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_product[fields2]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_product[fields3]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_product[fields4]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_product[fields5]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_product[fields6]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_product[fields7]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_request[PATCH-/products/1-body0]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_request[PATCH-/products/1-body1]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_request[GET-/products/0-None]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_request[GET-/inventory?limit=101-None]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_request[POST-/inventory/receipts-body4]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_request[POST-/inventory/receipts-body5]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_request[POST-/inventory/receipts-body6]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_invalid_request[POST-/inventory/receipts-body7]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_all_mutations_require_write_token[POST-/products-body0]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_all_mutations_require_write_token[PATCH-/products/1-body1]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_all_mutations_require_write_token[POST-/inventory/receipts-body2]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_unauthenticated_writes_require_login_without_legacy_token",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_api",
+          "test": "test_oversized_request_is_rejected",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_auth_reports",
+          "test": "test_login_invalid_password_and_unknown_username_share_response",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_auth_reports",
+          "test": "test_session_hash_expiration_and_logout",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_auth_reports",
+          "test": "test_role_permissions_and_existing_order_workflow",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_auth_reports",
+          "test": "test_reconciliation_reports_multiple_discrepancies_without_mutating_stock",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_auth_reports",
+          "test": "test_cors_allows_only_configured_origins",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_order_migration",
+          "test": "test_upgrade_preserves_existing_phase_one_receipts",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_order_lifecycle[cancel-CANCELLED-balance0]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_order_lifecycle[fulfill-FULFILLED-balance1]",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_insufficient_second_item_rolls_back_and_key_can_retry",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_database_failure_rolls_back_order_and_all_stock_changes",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_fulfillment_failure_preserves_reservation",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_competing_orders_for_one_sku_do_not_oversell",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_multi_product_orders_with_reversed_item_order",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_concurrent_identical_retries_create_one_order",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_concurrent_key_mismatch_creates_one_order",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_concurrent_cancellation_and_fulfillment",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_order_input_and_authorization",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_retry_after_lost_response_does_not_reserve_twice",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_concurrent_orders_with_mixed_quantities",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_concurrent_receipt_and_orders_keep_ledger_consistent",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_concurrent_repeated_cancellation_releases_stock_once",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_orders",
+          "test": "test_insufficient_order_in_one_warehouse_does_not_draw_from_another",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_public_demo",
+          "test": "test_hosted_demo_requires_safe_environment",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_public_demo",
+          "test": "test_public_demo_reads_consistent_synthetic_data_and_rejects_all_mutations",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_threshold_equality_repeated_orders_and_fulfillment",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_recovery_cancels_pending_and_new_crossing_rearms",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_approval_is_idempotent_and_does_not_change_stock",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_concurrent_crossings_produce_one_draft_and_outbox",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_rollback_discards_draft_and_outbox",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_failure_retry_and_committed_claim",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_permanent_error_and_expired_lease",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_telegram_adapter_mocks_https_and_conceals_provider_error",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_policy_validation_and_unauthenticated_reads",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_saving_policy_100_150_persists_and_queues_recommendation",
+          "status": "passed"
+        },
+        {
+          "suite": "tests.test_replenishment",
+          "test": "test_failed_delivery_waits_for_concurrent_recovery",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "command": "npm test",
+      "counts": {
+        "passed": 3
+      },
+      "cases": [
+        {
+          "suite": "dashboard.spec.ts",
+          "test": "administrator reserves and fulfills stock through the dashboard",
+          "status": "passed"
+        },
+        {
+          "suite": "dashboard.spec.ts",
+          "test": "guest can browse inventory on mobile and cannot access order actions",
+          "status": "passed"
+        },
+        {
+          "suite": "dashboard.spec.ts",
+          "test": "administrator configures a reorder policy and approves a pending recommendation",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "command": "npm run test:demo",
+      "counts": {
+        "passed": 2
+      },
+      "cases": [
+        {
+          "suite": "public-demo.spec.ts",
+          "test": "public demo shows synthetic audit data without write controls",
+          "status": "passed"
+        },
+        {
+          "suite": "public-demo.spec.ts",
+          "test": "public demo explains an unavailable or waking API",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "command": "npm run test:static",
+      "counts": {
+        "passed": 3
+      },
+      "cases": [
+        {
+          "suite": "static-demo.spec.ts",
+          "test": "static snapshot displays all audit screens with no backend requests",
+          "status": "passed"
+        },
+        {
+          "suite": "static-demo.spec.ts",
+          "test": "expanded local dataset paginates orders and stock movements",
+          "status": "passed"
+        },
+        {
+          "suite": "static-demo.spec.ts",
+          "test": "engineering overview demonstrates benchmark, reorder math and outbox without network calls",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

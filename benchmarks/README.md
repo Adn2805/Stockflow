@@ -1,8 +1,10 @@
-# StockFlow Phase 4 benchmarks
+# StockFlow benchmarks
 
-## Reproduce locally
+The [2027 resume benchmark report](resume-2027.md) records a fresh concurrency run and a successful-order-only Locust matrix on release commit `abfcd38`. The Phase 4 runs below remain the historical baseline. Their mixed request latencies include catalog reads, inventory reads, and stock rejections.
 
-Run from the repository root with Python 3.12 and a loopback PostgreSQL test database. Follow the [database setup](../README.md#tests) and export `TEST_DATABASE_URL` pointing to a database whose name ends in `_test`. Install the benchmark dependencies in the backend virtual environment.
+## Reproduce the Phase 4 workloads locally
+
+Run from the repository root with Python 3.12 and a loopback PostgreSQL test database. Follow the [database setup](../README.md#tests-and-benchmarks) and export `TEST_DATABASE_URL` pointing to a database whose name ends in `_test`. Install the benchmark dependencies in the backend virtual environment.
 
 ```sh
 python -m pip install -r benchmarks/requirements.txt

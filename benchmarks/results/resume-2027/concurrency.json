@@ -1,0 +1,226 @@
+[
+  {
+    "metadata": {
+      "started_at_utc": "2026-11-19T13:08:18.054952+00:00",
+      "application_commit": "abfcd38dc59064062c887eb4a5e9535d7620e52f",
+      "application_has_uncommitted_changes": false,
+      "os": "Windows-11-10.0.26300-SP0",
+      "logical_cpu_count": 12,
+      "python": "3.12.13",
+      "postgres": "PostgreSQL 17.12 (Debian 17.12-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit"
+    },
+    "scenario": "single-sku-500",
+    "requests": 500,
+    "expected_statuses": {
+      "201": 100,
+      "409": 400
+    },
+    "statuses": {
+      "201": 100,
+      "409": 400
+    },
+    "unique_response_order_ids": 100,
+    "burst_seconds": 5.6526,
+    "before": {
+      "products": 1,
+      "warehouses": 1,
+      "orders": 0,
+      "order_items": 0,
+      "movements": 1,
+      "reserved_orders": 0,
+      "duplicate_keys": 0,
+      "empty_orders": 0,
+      "on_hand": 100,
+      "reserved": 0,
+      "invalid_balances": 0,
+      "ledger_discrepancies": 0,
+      "reservation_discrepancies": 0,
+      "invalid_order_movements": 0
+    },
+    "after": {
+      "products": 1,
+      "warehouses": 1,
+      "orders": 100,
+      "order_items": 100,
+      "movements": 101,
+      "reserved_orders": 100,
+      "duplicate_keys": 0,
+      "empty_orders": 0,
+      "on_hand": 100,
+      "reserved": 100,
+      "invalid_balances": 0,
+      "ledger_discrepancies": 0,
+      "reservation_discrepancies": 0,
+      "invalid_order_movements": 0
+    },
+    "passed": true
+  },
+  {
+    "metadata": {
+      "started_at_utc": "2026-11-19T13:08:26.017095+00:00",
+      "application_commit": "abfcd38dc59064062c887eb4a5e9535d7620e52f",
+      "application_has_uncommitted_changes": false,
+      "os": "Windows-11-10.0.26300-SP0",
+      "logical_cpu_count": 12,
+      "python": "3.12.13",
+      "postgres": "PostgreSQL 17.12 (Debian 17.12-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit"
+    },
+    "scenario": "single-sku-500",
+    "requests": 500,
+    "expected_statuses": {
+      "201": 100,
+      "409": 400
+    },
+    "statuses": {
+      "201": 100,
+      "409": 400
+    },
+    "unique_response_order_ids": 100,
+    "burst_seconds": 5.2528,
+    "before": {
+      "products": 1,
+      "warehouses": 1,
+      "orders": 0,
+      "order_items": 0,
+      "movements": 1,
+      "reserved_orders": 0,
+      "duplicate_keys": 0,
+      "empty_orders": 0,
+      "on_hand": 100,
+      "reserved": 0,
+      "invalid_balances": 0,
+      "ledger_discrepancies": 0,
+      "reservation_discrepancies": 0,
+      "invalid_order_movements": 0
+    },
+    "after": {
+      "products": 1,
+      "warehouses": 1,
+      "orders": 100,
+      "order_items": 100,
+      "movements": 101,
+      "reserved_orders": 100,
+      "duplicate_keys": 0,
+      "empty_orders": 0,
+      "on_hand": 100,
+      "reserved": 100,
+      "invalid_balances": 0,
+      "ledger_discrepancies": 0,
+      "reservation_discrepancies": 0,
+      "invalid_order_movements": 0
+    },
+    "passed": true
+  },
+  {
+    "metadata": {
+      "started_at_utc": "2026-11-19T13:08:28.642198+00:00",
+      "application_commit": "abfcd38dc59064062c887eb4a5e9535d7620e52f",
+      "application_has_uncommitted_changes": false,
+      "os": "Windows-11-10.0.26300-SP0",
+      "logical_cpu_count": 12,
+      "python": "3.12.13",
+      "postgres": "PostgreSQL 17.12 (Debian 17.12-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit"
+    },
+    "scenario": "multi-product",
+    "requests": 32,
+    "expected_statuses": {
+      "201": 5,
+      "409": 27
+    },
+    "statuses": {
+      "409": 27,
+      "201": 5
+    },
+    "unique_response_order_ids": 5,
+    "burst_seconds": 0.4756,
+    "before": {
+      "products": 2,
+      "warehouses": 1,
+      "orders": 0,
+      "order_items": 0,
+      "movements": 2,
+      "reserved_orders": 0,
+      "duplicate_keys": 0,
+      "empty_orders": 0,
+      "on_hand": 20,
+      "reserved": 0,
+      "invalid_balances": 0,
+      "ledger_discrepancies": 0,
+      "reservation_discrepancies": 0,
+      "invalid_order_movements": 0
+    },
+    "after": {
+      "products": 2,
+      "warehouses": 1,
+      "orders": 5,
+      "order_items": 10,
+      "movements": 12,
+      "reserved_orders": 5,
+      "duplicate_keys": 0,
+      "empty_orders": 0,
+      "on_hand": 20,
+      "reserved": 15,
+      "invalid_balances": 0,
+      "ledger_discrepancies": 0,
+      "reservation_discrepancies": 0,
+      "invalid_order_movements": 0
+    },
+    "passed": true
+  },
+  {
+    "metadata": {
+      "started_at_utc": "2026-11-19T13:08:30.995909+00:00",
+      "application_commit": "abfcd38dc59064062c887eb4a5e9535d7620e52f",
+      "application_has_uncommitted_changes": false,
+      "os": "Windows-11-10.0.26300-SP0",
+      "logical_cpu_count": 12,
+      "python": "3.12.13",
+      "postgres": "PostgreSQL 17.12 (Debian 17.12-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit"
+    },
+    "scenario": "same-key",
+    "requests": 32,
+    "expected_statuses": {
+      "201": 1,
+      "200": 31
+    },
+    "statuses": {
+      "200": 31,
+      "201": 1
+    },
+    "unique_response_order_ids": 1,
+    "burst_seconds": 0.3633,
+    "before": {
+      "products": 1,
+      "warehouses": 1,
+      "orders": 0,
+      "order_items": 0,
+      "movements": 1,
+      "reserved_orders": 0,
+      "duplicate_keys": 0,
+      "empty_orders": 0,
+      "on_hand": 10,
+      "reserved": 0,
+      "invalid_balances": 0,
+      "ledger_discrepancies": 0,
+      "reservation_discrepancies": 0,
+      "invalid_order_movements": 0
+    },
+    "after": {
+      "products": 1,
+      "warehouses": 1,
+      "orders": 1,
+      "order_items": 1,
+      "movements": 2,
+      "reserved_orders": 1,
+      "duplicate_keys": 0,
+      "empty_orders": 0,
+      "on_hand": 10,
+      "reserved": 1,
+      "invalid_balances": 0,
+      "ledger_discrepancies": 0,
+      "reservation_discrepancies": 0,
+      "invalid_order_movements": 0
+    },
+    "passed": true
+  }
+]
