@@ -1,12 +1,14 @@
 # StockFlow
 
-StockFlow is an inventory and order reliability project for warehouses and small retailers. StockFlow manages its product catalog, inventory receipts, and order lifecycle on PostgreSQL. Its React and TypeScript dashboard connects to the same APIs for warehouse operations, audit history, and reconciliation. Each stock operation commits its balance changes alongside its ledger entries.
+StockFlow helps warehouses and small retailers handle competing orders for limited stock and respond to shortages before fulfillment is affected. PostgreSQL transactions reserve stock and record ledger entries together. Reorder policies create drafts for manager approval, and a durable outbox lets a separate worker retry Telegram alerts after commit.
 
 ## Portfolio demo
 
 [Open the public StockFlow demo](https://stockflow-adn2805.pages.dev/). It runs on Cloudflare Pages Free and displays a fixed synthetic snapshot. Run the local stack for authentication and write operations. See the [deployment runbook](docs/deployment.md) for build and verification steps.
 
-![Local read-only StockFlow dashboard with synthetic data](docs/stockflow-demo.png)
+For a busier warehouse walkthrough, run `npm run dev -- --mode static` from `frontend`. The bundled snapshot covers 320 synthetic orders across four warehouses and includes receipts, reservations, fulfillment, and cancellations. To regenerate it, set the local `TEST_DATABASE_URL` and run `python deploy/export_snapshot.py` from the repository root. The exporter uses a disposable PostgreSQL schema, fetches every API page, and checks reconciliation before writing the snapshot.
+
+The local recruiter build opens with three interactive demonstrations. The order replay illustrates two measured 500-request PostgreSQL runs (100 accepted, 400 rejected, zero oversold). The replenishment calculator uses synthetic inputs to illustrate the target-minus-available rule when stock is below threshold. The Telegram walkthrough shows low-stock detection, outbox processing, and delivery tracking. These browser demonstrations send no requests, execute no database transactions, and send no Telegram messages. The published site reflects the last approved upload. [Measured concurrency results](benchmarks/results/concurrency.json) · [Benchmark reproduction and limitations](benchmarks/README.md)
 
 ## Architecture
 

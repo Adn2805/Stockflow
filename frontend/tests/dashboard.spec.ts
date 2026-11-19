@@ -41,6 +41,13 @@ test('administrator reserves and fulfills stock through the dashboard', async ({
 test('guest can browse inventory on mobile and cannot access order actions', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
+  const signInButton = page.getByRole('button', { name: 'Sign in' })
+  await signInButton.click()
+  const dialog = page.getByRole('dialog', { name: 'Sign in to StockFlow' })
+  await expect(dialog).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(signInButton).toBeFocused()
   await signIn(page, 'guest')
   await expect(page.getByRole('button', { name: 'Create order', exact: true })).toHaveCount(0)
   await page.getByRole('navigation').getByRole('button', { name: 'Inventory', exact: true }).click()
@@ -50,6 +57,7 @@ test('guest can browse inventory on mobile and cannot access order actions', asy
 })
 
 test('administrator configures a reorder policy and approves a pending recommendation', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
   await signIn(page, 'admin')
   await page.getByRole('navigation').getByRole('button', { name: 'Replenishment' }).click()
@@ -60,6 +68,7 @@ test('administrator configures a reorder policy and approves a pending recommend
   await page.getByRole('button', { name: 'Save policy' }).click()
   const row = page.getByRole('row', { name: /Work gloves/ })
   await expect(row.getByText('Draft', { exact: true })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
   await expect(row.getByText('Pending', { exact: true })).toBeVisible()
   await page.getByRole('navigation').getByRole('button', { name: 'Inventory', exact: true }).click()
   await page.getByRole('navigation').getByRole('button', { name: 'Replenishment', exact: true }).click()

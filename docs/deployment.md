@@ -10,6 +10,8 @@ Run `npm ci` and `npm run build:static` from `frontend`, then upload the content
 
 The public smoke test passed on 19 November 2026. It opened all dashboard views and observed zero backend requests. To repeat it, set `STOCKFLOW_STATIC_ORIGIN=https://stockflow-adn2805.pages.dev` and run `npm run test:static` from `frontend`.
 
+Before uploading the recruiter release, run `npm run build:static` and `npm run test:static` with `STOCKFLOW_STATIC_ORIGIN` unset. Include only `dist` contents in the production ZIP and preserve the `fonts/` directory for the bundled fonts and their licenses. After an approved deployment, set `STOCKFLOW_REQUIRE_ENGINEERING=1` along with the published origin and rerun the static suite to require the walkthrough and 320-order snapshot on the live site.
+
 ## Free-tier plan
 
 Verified from provider documentation on 19 November 2026 (IST). Confirm the signed-in plan and any account-specific verification prompts before creating resources.

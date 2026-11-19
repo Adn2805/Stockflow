@@ -63,13 +63,13 @@ export function Replenishment({ products, warehouses, token, version }: {
     }, 'PATCH'), 'Reorder policy saved.')
   }
 
-  return <div className="grid gap-4">
+  return <div className="replenishment">
     {error && <Notice error>{error}</Notice>}
-    {notice && <Notice>{notice}</Notice>}
+    {notice && <Notice tone="success">{notice}</Notice>}
     {loading && <div role="status">Loading replenishment…</div>}
     <section className="surface form-panel">
       <h2>Reorder policy</h2>
-      {products.length > 0 && warehouses.length > 0 ? <form className="form-grid" onSubmit={save}>
+      {products.length > 0 && warehouses.length > 0 ? <form className="form-grid policy-grid" onSubmit={save}>
         <label>Product<select value={product} onChange={event => setProduct(event.target.value)} required>
           <option value="">Choose a product</option>
           {products.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
@@ -78,7 +78,7 @@ export function Replenishment({ products, warehouses, token, version }: {
           <option value="">Choose a warehouse</option>
           {warehouses.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
         </select></label>
-        <fieldset className="form-grid" key={[product, warehouse, selected?.threshold, selected?.target].join(':')}>
+        <fieldset className="policy-fields" key={[product, warehouse, selected?.threshold, selected?.target].join(':')}>
           <label>Reorder threshold<input name="threshold" type="number" min={0} max={Number.MAX_SAFE_INTEGER - 1}
             step={1} defaultValue={selected?.threshold} required /></label>
           <label>Target available stock<input name="target" type="number" min={1} max={Number.MAX_SAFE_INTEGER}
@@ -88,8 +88,10 @@ export function Replenishment({ products, warehouses, token, version }: {
       </form> : <Empty>Add a product and warehouse to configure a policy.</Empty>}
     </section>
     <section>
-      <h2 className="mb-2 font-semibold">Recommendations and Telegram delivery</h2>
-      <p className="mb-2">{drafts.filter(row => row.resolved_at === null).length} active low-stock situations</p>
+      <div className="panel-heading report-heading"><div>
+        <h2>Recommendations and Telegram delivery</h2>
+        <p>{drafts.filter(row => row.resolved_at === null).length} active low-stock situations</p>
+      </div></div>
       <Table columns={['Product', 'Warehouse', 'Available', 'Threshold', 'Suggested units', 'Recommendation', 'Telegram', 'Action']}
         rows={drafts} empty={loading ? 'Loading recommendations…' : 'No replenishment recommendations yet.'}
         render={row => <tr key={row.id}>

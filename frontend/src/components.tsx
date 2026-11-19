@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, CircleAlert, Inbox } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CircleAlert, CircleCheck, Inbox, Info } from 'lucide-react'
 
 export const formatNumber = (value: number) => value.toLocaleString()
 export const formatDate = (value: string) => new Date(value).toLocaleString(undefined, {
@@ -12,9 +12,12 @@ export function Status({ value }: { value: string }) {
   return <span className={'status status-' + value.toLowerCase()}>{label(value)}</span>
 }
 
-export function Notice({ children, error = false }: { children: ReactNode; error?: boolean }) {
-  return <div role={error ? 'alert' : 'status'} className={error ? 'notice error' : 'notice'}>
-    {error && <CircleAlert size={17} />}{children}
+export function Notice({ children, error = false, tone = 'info' }: {
+  children: ReactNode; error?: boolean; tone?: 'info' | 'success' | 'warning'
+}) {
+  const Icon = error || tone === 'warning' ? CircleAlert : tone === 'success' ? CircleCheck : Info
+  return <div role={error ? 'alert' : 'status'} className={'notice ' + (error ? 'error' : tone)}>
+    <Icon size={17} aria-hidden="true" />{children}
   </div>
 }
 
